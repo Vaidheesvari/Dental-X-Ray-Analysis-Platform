@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental X-Ray Analysis Platform</title>
+    <style>
+        :root {
+            --text: #0f172a;
+            --muted: #475569;
+            --border: #e5e7eb;
+            --primary: #6d28d9;
+            --primary-700: #5b21b6;
+            --accent: #0ea5e9;
+            --accent-700: #0284c7;
+            --highlight: #f43f5e;
+            --highlight-700: #e11d48;
+            --success: #22c55e;
+            --success-700: #16a34a;
+            --grad1: #0ea5e9;
+            --grad2: #6366f1;
+            --grad3: #f43f5e;
+            --grad4: #22c55e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: var(--text); min-height: 100vh; background: linear-gradient(120deg, var(--grad1), var(--grad2), var(--grad3), var(--grad4)); background-size: 300% 300%; animation: gradientFlow 18s ease infinite; }
+        .wrap { padding: 32px; }
+        .header { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto 24px; }
+        .brand { display: flex; flex-direction: column; }
+        .brand-title { font-size: 24px; font-weight: 600; letter-spacing: 0.2px; color: white; }
+        .brand-subtitle { font-size: 13px; color: rgba(255,255,255,0.8); }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 1024px) { .main-content { grid-template-columns: 1fr; } }
+        .card { background: rgba(255,255,255,0.88); border: 1px solid rgba(255,255,255,0.6); border-radius: 16px; padding: 24px; box-shadow: 0 12px 30px rgba(13, 17, 23, 0.25); backdrop-filter: blur(10px); }
+        .section-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+        .upload-area { border: 2px dashed var(--border); border-radius: 14px; padding: 28px; text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; margin-bottom: 16px; background: #fafafa; }
+        .upload-area:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(99,102,241,0.25); background: #f5f5f5; }
+        .upload-area.dragover { box-shadow: 0 12px 28px rgba(14,165,233,0.3); background: #f0f9ff; }
+        input[type="file"] { display: none; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; width: 100%; box-shadow: 0 8px 20px rgba(37,99,235,0.35); }
+        .btn:hover { transform: translateY(-1px) scale(1.01); box-shadow: 0 12px 28px rgba(37,99,235,0.45); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .results { margin-top: 16px; }
+        .result-section { background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9)); border: 1px solid rgba(229,231,235,0.8); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+        .result-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+        .language-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+        .language-tab { background: linear-gradient(135deg, #e0f2fe, #ede9fe); color: #0f172a; padding: 8px 14px; border-radius: 999px; cursor: pointer; font-size: 13px; border: 1px solid #c7d2fe; box-shadow: 0 4px 10px rgba(99,102,241,0.18); transition: transform 0.15s; }
+        .language-tab:hover { transform: translateY(-1px); }
+        .language-tab.active { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border-color: transparent; }
+        .translation-content { display: none; background: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 12px; line-height: 1.6; box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+        .translation-content.active { display: block; }
+        .findings-list { list-style: none; }
+        .finding-item { background: linear-gradient(180deg, #ffffff, #fbfbff); padding: 12px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .finding-item strong { color: var(--muted); }
+        .chat-container { display: flex; flex-direction: column; height: 560px; }
+        .chat-messages { flex: 1; overflow-y: auto; background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92)); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+        .message { margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; max-width: 80%; word-wrap: break-word; font-size: 14px; }
+        .user-message { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; margin-left: auto; box-shadow: 0 6px 14px rgba(99,102,241,0.35); }
+        .bot-message { background: #fff; color: var(--text); border: 1px solid var(--border); }
+        .chat-input-area { display: flex; gap: 8px; }
+        .chat-input { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; outline: none; box-shadow: 0 3px 8px rgba(0,0,0,0.06); }
+        .chat-input:focus { border-color: var(--accent); box-shadow: 0 6px 14px rgba(14,165,233,0.25); }
+        .loading { text-align: center; color: var(--muted); font-style: italic; padding: 8px; }
+        .error { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #7f1d1d; padding: 12px; border-radius: 10px; margin-top: 8px; border: 1px solid #fecaca; box-shadow: 0 4px 10px rgba(244,63,94,0.2); }
+        .success { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #065f46; padding: 12px; border-radius: 10px; margin-top: 8px; border: 1px solid #a7f3d0; box-shadow: 0 4px 10px rgba(34,197,94,0.18); }
+        .preview-image { max-width: 100%; border-radius: 12px; margin-top: 12px; border: 1px solid var(--border); box-shadow: 0 10px 24px rgba(0,0,0,0.15); }
+        .tips-section { background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92)); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-top: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+        .tips-list { list-style-position: inside; line-height: 1.7; }
+        .clear-chat-btn { background: linear-gradient(135deg, var(--highlight), var(--highlight-700)); box-shadow: 0 8px 20px rgba(244,63,94,0.35); }
+        .footer { max-width: 1200px; margin: 24px auto 0; color: #f8fafc; font-size: 12px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-title">Dental X-Ray Analysis Platform</div>
+                <div class="brand-subtitle">Clinical insights, multilingual reporting, and assistance</div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="main-content">
+                <div class="card">
+                    <div class="section-title">X-Ray Analysis</div>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <div style="font-size:14px; font-weight:600; margin-bottom:6px;">Upload Dental X-Ray</div>
+                        <div style="font-size:13px; color: var(--muted);">Click to browse or drag and drop image (JPG, PNG, GIF, BMP)</div>
+                        <input type="file" id="fileInput" accept="image/*">
+                    </div>
+                    
+                    <button id="analyzeBtn" class="btn" disabled>Analyze X-Ray</button>
+                    
+                    <div id="imagePreview"></div>
+                    <div id="analysisResults" class="results"></div>
+                </div>
+
+                <div class="card">
+                    <div class="section-title">Dental AI Assistant</div>
+
+                    <div style="display:flex; gap:8px; margin-bottom:12px;">
+                        <button class="btn clear-chat-btn" id="clearChatBtn" style="flex:1">Clear Chat</button>
+                        <button class="btn" id="speakChatBtn" style="flex:1; background:linear-gradient(135deg,#fde68a,#fca5a5);">Speak</button>
+                        <button class="btn" id="vqaToggleBtn" style="flex:1; background:linear-gradient(135deg,#10b981,#06b6d4);">VQA</button>
+                    </div>
+                    
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message bot-message">
+                                Welcome to the dental health assistant. Ask about dental care, oral hygiene, common conditions, nutrition for oral health, or medications.
+                            </div>
+                        </div>
+                        
+                        <div class="chat-input-area">
+                            <input type="text" class="chat-input" id="chatInput" placeholder="Type your question...">
+                            <button id="sendChatBtn" class="btn" style="width:auto; min-width:120px;">Send</button>
+                        </div>
+                    </div>
+                    <audio id="chatTtsPlayer" controls style="width:100%; margin-top:12px; display:none;"></audio>
+                    
+                    <div class="tips-section">
+                        <h3>Quick Dental Tips</h3>
+                        <ul class="tips-list" id="tipsList">
+                            <li>Brush teeth twice daily with fluoride toothpaste</li>
+                            <li>Floss daily to remove plaque between teeth</li>
+                            <li>Visit your dentist every 6 months for checkups</li>
+                            <li>Limit sugary foods and drinks</li>
+                            <li>Drink plenty of water throughout the day</li>
+                        </ul>
+                    </div>
+
+                    <div id="vqaSection" class="result-section" style="margin-top:16px; display:none;">
+                        <h3>Visual Question Answering (VQA)</h3>
+                        <p style="font-size:13px; margin-bottom:12px;">Ask a question about the currently previewed X-ray image.</p>
+                        <input type="text" id="vqaQuestion" placeholder="e.g. Is there a cavity on the upper left?" style="width:100%; padding:10px; margin-bottom:8px; border-radius:8px; border:1px solid var(--border)">
+                        <div style="display:flex; gap:8px;">
+                            <button id="vqaAskBtn" class="btn" style="flex:1;">Ask VQA</button>
+                            <button id="speakBtn" class="btn" style="flex:1; background:linear-gradient(135deg,#fde68a,#fca5a5);">Speak</button>
+                        </div>
+                        <div id="vqaAnswer" style="margin-top:12px;"></div>
+                        <audio id="ttsPlayer" controls style="width:100%; margin-top:12px; display:none;"></audio>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">© Dental X-Ray Analysis Platform</div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const imagePreview = document.getElementById('imagePreview');
+        const analysisResults = document.getElementById('analysisResults');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendChatBtn = document.getElementById('sendChatBtn');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+        const tipsList = document.getElementById('tipsList');
+
+        let selectedFile = null;
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="X-ray preview">`;
+            };
+            reader.readAsDataURL(file);
+            
+            analyzeBtn.disabled = false;
+        }
+
+        analyzeBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = 'Analyzing...';
+            analysisResults.innerHTML = '<div class="loading">Analyzing X-ray image...</div>';
+            
+            const formData = new FormData();
+            formData.append('xray_image', selectedFile);
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    analysisResults.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                analysisResults.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = 'Analyze X-Ray';
+            }
+        });
+
+        function displayResults(data) {
+            let html = '<div class="success">Analysis Complete</div>';
+            
+            html += '<div class="result-section">';
+            html += '<h3>Analysis Summary (English)</h3>';
+            html += `<p>${data.english_caption}</p>`;
+            html += '</div>';
+            
+            if (data.translations) {
+                html += '<div class="result-section">';
+                html += '<h3>Multilingual Translations</h3>';
+                html += '<div class="language-tabs">';
+                
+                const languages = Object.keys(data.translations);
+                languages.forEach((lang, index) => {
+                    html += `<div class="language-tab ${index === 0 ? 'active' : ''}" data-lang="${lang}">${lang}</div>`;
+                });
+                
+                html += '</div>';
+                
+                languages.forEach((lang, index) => {
+                    html += `<div class="translation-content ${index === 0 ? 'active' : ''}" data-lang="${lang}">`;
+                    html += `<p>${data.translations[lang]}</p>`;
+                    html += '</div>';
+                });
+                
+                html += '</div>';
+            }
+            
+            if (data.detailed_report && data.detailed_report.findings) {
+                html += '<div class="result-section">';
+                html += '<h3>Detailed Findings</h3>';
+                html += '<ul class="findings-list">';
+                
+                data.detailed_report.findings.forEach(finding => {
+                    html += '<li class="finding-item">';
+                    html += `<strong>Condition:</strong> ${finding.condition}<br>`;
+                    html += `<strong>Location:</strong> ${finding.location}<br>`;
+                    html += `<strong>Severity:</strong> ${finding.severity}<br>`;
+                    html += `<strong>Confidence:</strong> ${finding.confidence}`;
+                    html += '</li>';
+                });
+                
+                html += '</ul>';
+                html += '</div>';
+                
+                if (data.detailed_report.recommendations) {
+                    html += '<div class="result-section">';
+                    html += '<h3>Recommendations</h3>';
+                    html += '<ul>';
+                    data.detailed_report.recommendations.forEach(rec => {
+                        html += `<li>${rec}</li>`;
+                    });
+                    html += '</ul>';
+                    html += '</div>';
+                }
+            }
+            
+            analysisResults.innerHTML = html;
+            
+            document.querySelectorAll('.language-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const lang = tab.getAttribute('data-lang');
+                    
+                    document.querySelectorAll('.language-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.translation-content').forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.querySelector(`.translation-content[data-lang="${lang}"]`).classList.add('active');
+                });
+            });
+        }
+
+        sendChatBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            addMessage(message, 'user');
+            chatInput.value = '';
+            
+            addMessage('Thinking...', 'bot', true);
+            
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message })
+                });
+                
+                const data = await response.json();
+                
+                const loadingMsg = chatMessages.querySelector('.message.bot-message:last-child');
+                if (loadingMsg && loadingMsg.textContent === 'Thinking...') {
+                    loadingMsg.remove();
+                }
+                
+                if (data.success) {
+                    addMessage(data.response, 'bot');
+                } else {
+                    addMessage(`Error: ${data.error}`, 'bot');
+                }
+            } catch (error) {
+                const loadingMsg = chatMessages.querySelector('.message.bot-message:last-child');
+                if (loadingMsg && loadingMsg.textContent === 'Thinking...') {
+                    loadingMsg.remove();
+                }
+                addMessage(`Error: ${error.message}`, 'bot');
+            }
+        }
+
+        function renderBot(text) {
+            let t = String(text || '').trim();
+            t = t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            t = t.replace(/\r?\n/g, '\n');
+            t = t.replace(/(\d+)\.\s/g, '<br>$1. ');
+            t = t.replace(/-\s/g, '<br>• ');
+            t = t.replace(/\n/g, '<br>');
+            t = t.replace(/(<br>){3,}/g, '<br><br>');
+            return t;
+        }
+
+        function addMessage(text, sender, isLoading = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            if (sender === 'bot') {
+                messageDiv.innerHTML = renderBot(text);
+            } else {
+                messageDiv.textContent = text;
+            }
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        clearChatBtn.addEventListener('click', async () => {
+            try {
+                await fetch('/clear_chat', { method: 'POST' });
+                chatMessages.innerHTML = `
+                    <div class="message bot-message">
+                        Chat history cleared. How can I assist you today?
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error clearing chat:', error);
+            }
+        });
+
+        // VQA and TTS UI handlers
+        const vqaToggleBtn = document.getElementById('vqaToggleBtn');
+        const speakChatBtn = document.getElementById('speakChatBtn');
+        const vqaSection = document.getElementById('vqaSection');
+        const vqaAskBtn = document.getElementById('vqaAskBtn');
+        const vqaQuestion = document.getElementById('vqaQuestion');
+        const vqaAnswer = document.getElementById('vqaAnswer');
+        const speakBtn = document.getElementById('speakBtn');
+        const ttsPlayer = document.getElementById('ttsPlayer');
+        const chatTtsPlayer = document.getElementById('chatTtsPlayer');
+
+        vqaToggleBtn.addEventListener('click', () => {
+            if (!selectedFile) {
+                alert('Please upload an X-ray image first.');
+                return;
+            }
+            vqaSection.style.display = vqaSection.style.display === 'none' ? 'block' : 'none';
+        });
+
+        vqaAskBtn.addEventListener('click', async () => {
+            const q = vqaQuestion.value.trim();
+            if (!q) return alert('Please enter a question');
+            if (!selectedFile) return alert('Please upload an X-ray image first.');
+
+            vqaAnswer.innerHTML = '<div class="loading">Processing VQA...</div>';
+
+            const form = new FormData();
+            form.append('image', selectedFile);
+            form.append('question', q);
+
+            try {
+                const resp = await fetch('/vqa', { method: 'POST', body: form });
+                const data = await resp.json();
+                if (data.success) {
+                    vqaAnswer.innerHTML = `<div class="result-section"><strong>Answer:</strong> ${data.answer.answer}<br><small>Source: ${data.answer.source}</small></div>`;
+                } else {
+                    vqaAnswer.innerHTML = `<div class="error">${data.error || 'VQA failed'}</div>`;
+                }
+            } catch (err) {
+                vqaAnswer.innerHTML = `<div class="error">${err.message}</div>`;
+            }
+        });
+
+        speakChatBtn.addEventListener('click', async () => {
+            const lastBotMessage = Array.from(chatMessages.querySelectorAll('.bot-message')).pop();
+            if (!lastBotMessage) {
+                alert('No bot message to speak. Send a message first.');
+                return;
+            }
+            
+            const textToSpeak = lastBotMessage.textContent.trim();
+            if (!textToSpeak) {
+                alert('Cannot speak empty message.');
+                return;
+            }
+
+            try {
+                speakChatBtn.disabled = true;
+                speakChatBtn.textContent = 'Generating audio...';
+
+                const resp = await fetch('/speak', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: textToSpeak, lang: 'en' })
+                });
+                const data = await resp.json();
+                if (data.success && data.audio_path) {
+                    chatTtsPlayer.src = data.audio_path;
+                    chatTtsPlayer.style.display = 'block';
+                    try { await chatTtsPlayer.play(); } catch(e) { console.log('Autoplay may be blocked'); }
+                } else {
+                    alert(data.error || 'TTS failed');
+                }
+            } catch (err) {
+                alert('TTS error: ' + err.message);
+            } finally {
+                speakChatBtn.disabled = false;
+                speakChatBtn.textContent = 'Speak';
+            }
+        });
+
+        speakBtn.addEventListener('click', async () => {
+            const activeTrans = document.querySelector('.translation-content.active');
+            const summaryText = activeTrans ? activeTrans.textContent.trim() : (document.querySelector('#analysisResults .result-section p')?.textContent || '');
+            if (!summaryText) return alert('Run analysis first to generate text to speak.');
+
+            try {
+                speakBtn.disabled = true;
+                speakBtn.textContent = 'Generating audio...';
+
+                const resp = await fetch('/speak', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: summaryText, lang: 'en' })
+                });
+                const data = await resp.json();
+                if (data.success && data.audio_path) {
+                    ttsPlayer.src = data.audio_path;
+                    ttsPlayer.style.display = 'block';
+                    try { await ttsPlayer.play(); } catch(e) { /* autoplay may be blocked */ }
+                } else {
+                    alert(data.error || 'TTS failed');
+                }
+            } catch (err) {
+                alert('TTS error: ' + err.message);
+            } finally {
+                speakBtn.disabled = false;
+                speakBtn.textContent = 'Speak';
+            }
+        });
+    </script>
+</body>
+</html>
